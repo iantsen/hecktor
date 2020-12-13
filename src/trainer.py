@@ -1,3 +1,4 @@
+import os
 import pathlib
 import copy
 import numpy as np
@@ -68,24 +69,20 @@ class ModelTrainer:
         self.save_last_model = save_last_model
         self.scheduler_step_per_epoch = scheduler_step_per_epoch
 
-        self.out_channels = list(self.model.children())[-1].out_channels  # output channels
-        # self.out_channels = 4  
-        self.n_cls = 2 if self.out_channels == 1 else self.out_channels
-
         # Dicts for saving train and val losses:
         self.learning_curves = dict()
-        self.learning_curves['loss'], self.learning_curves['metrics'] = dict(), dict()
+        self.learning_curves['loss'], self.learning_curves['metric'] = dict(), dict()
         self.learning_curves['loss']['train'], self.learning_curves['loss']['val'] = [], []
-        self.learning_curves['metrics']['train'], self.learning_curves['metrics']['val'] = [], []
+        self.learning_curves['metric']['train'], self.learning_curves['metric']['val'] = [], []
 
-        # Summary: Best epoch, loss, metrics and best model weights:
+        # Summary: Best epoch, loss, metric and best model weights:
         self.best_val_epoch = 0
         self.best_val_loss = float('inf')
         if self.mode == 'max':
-            self.best_val_avg_metrics = -float('inf')
+            self.best_val_avg_metric = -float('inf')
         else:
-            self.best_val_avg_metrics = float('inf')
-        self.best_val_metrics = np.array((self.n_cls - 1) * [0.0])
+            self.best_val_avg_metric = float('inf')
+        self.best_val_metric = 0.0
         self.best_model_wts = None
         self.checkpoint = None  # last model and optimizer weights
 
@@ -115,7 +112,7 @@ class ModelTrainer:
                     self.model.eval()  # Set model to evaluate mode
 
                 phase_loss = 0.0  # Train or val loss
-                phase_metrics = np.array((self.n_cls - 1) * [0.0])
+                phase_metric = 0.0
 
                 # Track history only if in train phase:
                 with torch.set_grad_enabled(phase == 'train'):
@@ -129,21 +126,22 @@ class ModelTrainer:
                         output = self.model(input)
 
                         loss = self.criterion(output, target)
-                        metrics = self.metric(output.detach(), target.detach())
+                        metric = self.metric(output.detach(), target.detach())
 
-                        # Losses and metrics:
+                        # Losses and metric:
                         phase_loss += loss.item()
-                        phase_metrics += metrics
+                        phase_metric += metric.item()
 
                         with np.printoptions(precision=3, suppress=True):
-                            print(f'batch: {batch} batch loss: {loss:.3f} \tmetrics: {metrics:.3f}')
+                            print(f'batch: {batch} batch loss: {loss:.3f} \tmetric: {metric:.3f}')
 
-                        del input, target, output, metrics
+                        del input, target, output, metric
 
                         # Backward pass + optimize only if in training phase:
                         if phase == 'train':
                             loss.backward()
                             self.optimizer.step()
+
                             # zero the parameter gradients:
                             self.optimizer.zero_grad()
 
@@ -154,32 +152,32 @@ class ModelTrainer:
                         batch += 1
 
                 phase_loss /= len(self.dataloaders[phase])
-                phase_metrics /= len(self.dataloaders[phase])
+                phase_metric /= len(self.dataloaders[phase])
                 self.learning_curves['loss'][phase].append(phase_loss)
-                self.learning_curves['metrics'][phase].append(phase_metrics)
+                self.learning_curves['metric'][phase].append(phase_metric)
 
-                print(f'{phase.upper()} loss: {phase_loss:.3f} \tavg_metrics: {np.mean(phase_metrics):.3f}')
+                print(f'{phase.upper()} loss: {phase_loss:.3f} \tavg_metric: {np.mean(phase_metric):.3f}')
 
                 # Save summary if it is the best val results so far:
                 if phase == 'val':
-                    if self.mode == 'max' and np.mean(phase_metrics) > self.best_val_avg_metrics:
+                    if self.mode == 'max' and np.mean(phase_metric) > self.best_val_avg_metric:
                         self.best_val_epoch = epoch
                         self.best_val_loss = phase_loss
-                        self.best_val_avg_metrics = np.mean(phase_metrics)
-                        self.best_val_metrics = phase_metrics
+                        self.best_val_avg_metric = np.mean(phase_metric)
+                        self.best_val_metric = phase_metric
                         self.best_model_wts = copy.deepcopy(self.model.state_dict())
 
-                    if self.mode == 'min' and np.mean(phase_metrics) < self.best_val_avg_metrics:
+                    if self.mode == 'min' and np.mean(phase_metric) < self.best_val_avg_metric:
                         self.best_val_epoch = epoch
                         self.best_val_loss = phase_loss
-                        self.best_val_avg_metrics = np.mean(phase_metrics)
-                        self.best_val_metrics = phase_metrics
+                        self.best_val_avg_metric = np.mean(phase_metric)
+                        self.best_val_metric = phase_metric
                         self.best_model_wts = copy.deepcopy(self.model.state_dict())
 
             # Adjust learning rate after val phase:
             if self.scheduler and self.scheduler_step_per_epoch:
                 if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                    self.scheduler.step(np.mean(phase_metrics))
+                    self.scheduler.step(np.mean(phase_metric))
                 else:
                     self.scheduler.step()
 
@@ -193,7 +191,7 @@ class ModelTrainer:
 
         A short summary is stored in a csv file ('summary.csv'). Weights of the best model are stored in
         'best_model_weights.pt'. A checkpoint of the last epoch is stored in 'last_model_checkpoint.tar'. Two plots
-        for the loss function and metric are stored in 'loss_plot.png' and 'metrics_plot.png', respectively.
+        for the loss function and metric are stored in 'loss_plot.png' and 'metric_plot.png', respectively.
 
         Parameters
         ----------
@@ -203,13 +201,17 @@ class ModelTrainer:
 
         path_to_dir = pathlib.Path(path_to_dir)
 
+        # Check if the directory exists:
+        if not os.path.exists(path_to_dir):
+            os.makedirs(path_to_dir)
+
         # Write a short summary in a csv file:
         with open(path_to_dir / 'summary.csv', 'w', newline='', encoding='utf-8') as summary:
             summary.write(f'SUMMARY OF THE EXPERIMENT:\n\n')
             summary.write(f'BEST VAL EPOCH: {self.best_val_epoch}\n')
             summary.write(f'BEST VAL LOSS: {self.best_val_loss}\n')
-            summary.write(f'BEST VAL AVG METRICS: {self.best_val_avg_metrics}\n')
-            summary.write(f'BEST VAL METRICS: {self.best_val_metrics}\n')
+            summary.write(f'BEST VAL AVG metric: {self.best_val_avg_metric}\n')
+            summary.write(f'BEST VAL metric: {self.best_val_metric}\n')
 
         # Save best model weights:
         torch.save(self.best_model_wts, path_to_dir / 'best_model_weights.pt')
@@ -222,8 +224,8 @@ class ModelTrainer:
         df_learning_curves = pd.DataFrame.from_dict({
             'loss_train': self.learning_curves['loss']['train'],
             'loss_val': self.learning_curves['loss']['val'],
-            'metrics_train': self.learning_curves['metrics']['train'],
-            'metrics_val': self.learning_curves['metrics']['val']
+            'metric_train': self.learning_curves['metric']['train'],
+            'metric_val': self.learning_curves['metric']['val']
         })
         df_learning_curves.to_csv(path_to_dir / 'learning_curves.csv', sep=';')
 
@@ -240,19 +242,19 @@ class ModelTrainer:
         plt.grid()
         plt.savefig(path_to_dir / 'loss_plot.png', bbox_inches='tight')
 
-        # Metrics figure:
-        train_avg_metrics = [np.mean(i) for i in self.learning_curves['metrics']['train']]
-        val_avg_metrics = [np.mean(i) for i in self.learning_curves['metrics']['val']]
+        # metric figure:
+        train_avg_metric = [np.mean(i) for i in self.learning_curves['metric']['train']]
+        val_avg_metric = [np.mean(i) for i in self.learning_curves['metric']['val']]
 
         plt.figure(figsize=(17.5, 10))
-        plt.plot(range(self.num_epochs), train_avg_metrics, label='train')
-        plt.plot(range(self.num_epochs), val_avg_metrics, label='val')
+        plt.plot(range(self.num_epochs), train_avg_metric, label='train')
+        plt.plot(range(self.num_epochs), val_avg_metric, label='val')
         plt.xlabel('Epoch', fontsize=20)
-        plt.ylabel('Avg Metrics', fontsize=20)
+        plt.ylabel('Avg metric', fontsize=20)
         plt.xticks(fontsize=15)
         plt.yticks(fontsize=15)
         plt.legend(fontsize=20)
         plt.grid()
-        plt.savefig(path_to_dir / 'metrics_plot.png', bbox_inches='tight')
+        plt.savefig(path_to_dir / 'metric_plot.png', bbox_inches='tight')
 
         print(f'All results have been saved in {path_to_dir}')

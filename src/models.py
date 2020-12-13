@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .layers import BasicConv3d, FastSmoothSeNormConv3d
+from layers import BasicConv3d, FastSmoothSeNormConv3d
 
 
 class BaselineUNet(nn.Module):
@@ -40,7 +40,7 @@ class BaselineUNet(nn.Module):
         self.block_1_1_right = BasicConv3d((1 + 1) * n_filters, n_filters, kernel_size=3, stride=1, padding=1)
         self.block_1_2_right = BasicConv3d(n_filters, n_filters, kernel_size=3, stride=1, padding=1)
 
-        self.conv1x1 = nn.Conv3d(n_filters, n_cls, kernel_size=1, stride=1, padding=0)
+        self.conv1x1 = nn.Conv3d(n_filters, self.n_cls, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
 
@@ -139,7 +139,7 @@ class FastSmoothSENormDeepUNet_supervision_skip_no_drop(nn.Module):
         self.block_1_1_right = FastSmoothSeNormConv3d((1 + 1) * n_filters, n_filters, reduction, kernel_size=3, stride=1, padding=1)
         self.block_1_2_right = FastSmoothSeNormConv3d(n_filters, n_filters, reduction, kernel_size=3, stride=1, padding=1)
 
-        self.conv1x1 = nn.Conv3d(1 * n_filters, n_cls, kernel_size=1, stride=1, padding=0)
+        self.conv1x1 = nn.Conv3d(1 * n_filters, self.n_cls, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
 

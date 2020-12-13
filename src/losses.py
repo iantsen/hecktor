@@ -4,20 +4,20 @@ from torch import nn
 
 class DiceLoss(nn.Module):
     def __init__(self):
-        super().__init__()
+        super(DiceLoss, self).__init__()
         self.smooth = 1
 
     def forward(self, input, target):
-        flat_input = input.contiguous().view(-1)
-        flat_target = target.contiguous().view(-1)
-        numerator = 2 * torch.dot(flat_input, flat_target) + self.smooth
-        denominator = torch.pow(flat_input, 2).sum() + torch.pow(flat_target, 2).sum() + self.smooth
-        return 1 - (numerator / denominator)
+        axes = tuple(range(1, input.dim()))
+        intersect = (input * target).sum(dim=axes)
+        union = torch.pow(input, 2).sum(dim=axes) + torch.pow(target, 2).sum(dim=axes)
+        loss = 1 - (2 * intersect + self.smooth) / (union + self.smooth)
+        return loss.mean()
 
 
 class FocalLoss(nn.Module):
     def __init__(self, gamma=2):
-        super().__init__()
+        super(FocalLoss, self).__init__()
         self.gamma = gamma
         self.eps = 1e-3
 
