@@ -4,7 +4,6 @@ from torch.nn import functional as F
 
 
 class BasicConv3d(nn.Module):
-
     def __init__(self, in_channels, out_channels, **kwargs):
         super(BasicConv3d, self).__init__()
         self.conv = nn.Conv3d(in_channels, out_channels, bias=False, **kwargs)
@@ -18,7 +17,6 @@ class BasicConv3d(nn.Module):
 
 
 class FastSmoothSENorm(nn.Module):
-
     class SEWeights(nn.Module):
         def __init__(self, in_channels, reduction=2):
             super().__init__()
@@ -46,7 +44,6 @@ class FastSmoothSENorm(nn.Module):
 
 
 class FastSmoothSeNormConv3d(nn.Module):
-
     def __init__(self, in_channels, out_channels, reduction=2, **kwargs):
         super(FastSmoothSeNormConv3d, self).__init__()
         self.conv = nn.Conv3d(in_channels, out_channels, bias=True, **kwargs)
@@ -56,4 +53,33 @@ class FastSmoothSeNormConv3d(nn.Module):
         x = self.conv(x)
         x = F.relu(x, inplace=True)
         x = self.norm(x)
+        return x
+
+
+class RESseNormConv3d(nn.Module):
+    def __init__(self, in_channels, out_channels, reduction=2, **kwargs):
+        super().__init__()
+        self.conv1 = FastSmoothSeNormConv3d(in_channels, out_channels, reduction, **kwargs)
+
+        if in_channels != out_channels:
+            self.res_conv = FastSmoothSeNormConv3d(in_channels, out_channels, reduction, kernel_size=1, stride=1, padding=0)
+        else:
+            self.res_conv = None
+
+    def forward(self, x):
+        residual = self.res_conv(x) if self.res_conv else x
+        x = self.conv1(x)
+        x += residual
+        return x
+
+
+class UpConv(nn.Module):
+    def __init__(self, in_channels, out_channels, reduction=2, scale=2):
+        super().__init__()
+        self.scale = scale
+        self.conv = FastSmoothSeNormConv3d(in_channels, out_channels, reduction, kernel_size=1, stride=1, padding=0)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = F.interpolate(x, scale_factor=self.scale, mode='trilinear', align_corners=False)
         return x
