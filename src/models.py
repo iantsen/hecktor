@@ -61,6 +61,9 @@ class BaselineUNet(nn.Module):
 
 
 class FastSmoothSENormDeepUNet_supervision_skip_no_drop(nn.Module):
+    """The model presented in the paper. This model is one of the multiple models that we tried in our experiments
+    that it why it has such an awkward name."""
+
     def __init__(self, in_channels, n_cls, n_filters, reduction=2, return_logits=False):
         super(FastSmoothSENormDeepUNet_supervision_skip_no_drop, self).__init__()
         self.in_channels = in_channels
