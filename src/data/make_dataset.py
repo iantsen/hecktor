@@ -13,12 +13,13 @@ from utils import read_nifti, write_nifti, get_attributes, resample_sitk_image
 def main(args):
     path_to_config = pathlib.Path(args.path)
     with open(path_to_config) as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
 
     path_to_input = pathlib.Path(config['path_to_input'])
     path_to_bb = pathlib.Path(config['path_to_bb'])
     path_to_output = pathlib.Path(config['path_to_output'])
     is_mask_available = config['is_mask_available']
+    verbose = config['verbose']
 
     bb = pd.read_csv(path_to_bb)
     patients = list(bb.PatientID)
@@ -28,7 +29,7 @@ def main(args):
     if not os.path.exists(path_to_output):
         os.makedirs(path_to_output, exist_ok=True)
 
-    for p in tqdm(patients):
+    for p in tqdm(patients) if verbose else patients:
         # Read images:
         img_ct = read_nifti(path_to_input / p / (p + '_ct.nii.gz'))
         img_pt = read_nifti(path_to_input / p / (p + '_pt.nii.gz'))
