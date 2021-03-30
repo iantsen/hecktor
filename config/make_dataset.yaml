@@ -1,4 +1,5 @@
-path_to_input: 'C:/inserm/hecktor/hecktor_train/hecktor_nii/'  # directory with images
-path_to_bb: 'C:/inserm/hecktor/hecktor_train/bbox.csv'  # file with bounding box coordinates
-path_to_output: 'C:/inserm/hecktor/hecktor_train/hecktor_nii_resampled/'  # directory to save resampled images
-is_mask_available: true  # if `true`, masks will be preprocessed. Use `false`, if masks are unavailable
+path_to_input: '/home/iantsen/hecktor/data/hecktor_test/hecktor_nii_test/'  # directory with images
+path_to_bb: '/home/iantsen/hecktor/data/hecktor_test/bbox_test.csv'  # file with bounding box coordinates
+path_to_output: '/home/iantsen/hecktor/data/hecktor_test/hecktor_nii_resampled/'  # directory to save resampled images
+is_mask_available: false  # if `true`, masks will be preprocessed. Use `false`, if masks are unavailable
+verbose: false  # if `true`, the progress bar will be shown
