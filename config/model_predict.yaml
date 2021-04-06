@@ -1,0 +1,24 @@
+# paths:
+path_to_data: '/home/iantsen/hecktor/data/hecktor_test/hecktor_nii_resampled/'  # directory with test images
+path_to_save_dir: '/home/iantsen/hecktor/data/hecktor_test/preds/'  # predictions will be saved here
+
+path_to_weights:  # path or paths to weights. If multiple paths provided, an ensemble of models will be used
+  - '/home/iantsen/hecktor/model/weights/s0_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/s1_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/s2_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/s3_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/ns0_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/ns1_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/ns2_best_model_weights.pt'
+  - '/home/iantsen/hecktor/model/weights/ns3_best_model_weights.pt'
+
+# output:
+probs: false  # if `true`, the sigmoid output will be saved. Otherwise, 0.5-threshold will be applied to get binary labels
+
+# train settings:
+num_workers: 2  # for example, use a number of CPU cores
+
+n_cls: 2  # number of classes to predict (background and tumor)
+in_channels: 2  # number of input modalities
+n_filters: 24  # number of filters after the input (24 was used in the paper)
+reduction: 2  # parameter controls the size of the bottleneck in SENorm layers

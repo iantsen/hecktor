@@ -22,7 +22,7 @@ import utils
 def main(args):
     path_to_config = pathlib.Path(args.path)
     with open(path_to_config) as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
 
     # read config:
     path_to_data = pathlib.Path(config['path_to_data'])

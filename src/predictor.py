@@ -77,8 +77,6 @@ class Predictor:
                     sample = self.output_transforms(sample)
 
                 # Save prediction:
-                print(sample['id'][0])
-                print(sample['affine'][0].numpy())
                 self._save_preds(sample, self.path_to_save_dir)
 
         print(f'Predictions have been saved in {self.path_to_save_dir}')
@@ -122,8 +120,6 @@ class Predictor:
                     sample = self.output_transforms(sample)
 
                 # Save prediction:
-                print(sample['id'][0])
-                print(sample['affine'][0].numpy())
                 self._save_preds(sample, self.path_to_save_dir)
 
         print(f'Predictions have been saved in {self.path_to_save_dir}')
@@ -131,8 +127,10 @@ class Predictor:
     @staticmethod
     def _save_preds(sample, path_to_dir):
         preds = sample['output']
-        preds = nib.Nifti1Image(preds, affine=sample['affine'][0].numpy())
-        nib.save(preds, str(path_to_dir / (sample['id'][0] + '.nii.gz')))
+        sample_id = sample['id'][0]
+        affine = sample['affine'][0].numpy()
+        preds = nib.Nifti1Image(preds, affine=affine)
+        nib.save(preds, str(path_to_dir / (sample_id + '.nii.gz')))
 
     @staticmethod
     def _load_model_weights(model, path_to_model_weights):
