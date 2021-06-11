@@ -41,9 +41,10 @@ python predict.py -p hecktor/config/model_predict.yaml
 ```
 
 ### Model weights
-To reproduce results presented in the paper on different train / validation folds, one can use pretrained models saved in the folder `hecktor/model/weights/`. Weights of a single model are stored in files named `{split}_best_model_weights.pt`. IDs of the patients in the train / validation folds for each data split are stored in `train_val_{split}.pkl` files located in the folder `hecktor/src/data/splits/`.
+To reproduce results presented in the paper on different train / validation folds, one must download and save pretrained weights in the folder `hecktor/model/weights/`. Weights of a single model are stored in files named `{split}_best_model_weights.pt`. IDs of the patients in the train / validation folds for each data split are stored in `train_val_{split}.pkl` files located in the folder `hecktor/src/data/splits/`.
 
-In order to download weights of all pretrained model (eight models in total) built on the different train / validation, __Git LFS (Large File Storage) must be installed before cloning this repository__. Read about Git LFS [here](https://www.atlassian.com/git/tutorials/git-lfs#clone-respository).
+In order to download weights of all pretrained model (eight models in total) built on the different train / validation, use the following [link](https://www.dropbox.com/sh/kkvqwn0bpnt1ynk/AABGNdpzTSiIKjiGV5K2ta0Na?dl=0).
+
 
 ### Example
 ![img](https://drive.google.com/uc?export=view&id=1U5ifCqqWMKV65wvv1x2BWAKMvMZS9Ywt)
