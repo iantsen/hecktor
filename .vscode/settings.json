@@ -3,5 +3,8 @@
         "./src",
         "./src",
         "./src/data"
+    ],
+    "cSpell.words": [
+        "cudnn"
     ]
 }
