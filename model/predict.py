@@ -1,4 +1,5 @@
 # 第一次上推尝试
+# 官方网址：https://github.com/iantsen/hecktor
 import sys
 import argparse
 import yaml
