@@ -5,6 +5,7 @@
         "./src/data"
     ],
     "cSpell.words": [
-        "cudnn"
+        "cudnn",
+        "tqdm"
     ]
 }
