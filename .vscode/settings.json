@@ -5,7 +5,12 @@
         "./src/data"
     ],
     "cSpell.words": [
+        "cmap",
         "cudnn",
+        "figsize",
+        "hecktor",
+        "imshow",
+        "inserm",
         "tqdm"
     ]
 }
