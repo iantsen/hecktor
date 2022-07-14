@@ -5,12 +5,24 @@
         "./src/data"
     ],
     "cSpell.words": [
+        "bbox",
+        "bspline",
         "cmap",
         "cudnn",
+        "dtype",
+        "Exctract",
         "figsize",
         "hecktor",
+        "iantsen",
         "imshow",
         "inserm",
-        "tqdm"
+        "Lanczos",
+        "MICCAI",
+        "ndarrays",
+        "pixelid",
+        "rcdefaults",
+        "sinc",
+        "tqdm",
+        "voxels"
     ]
 }

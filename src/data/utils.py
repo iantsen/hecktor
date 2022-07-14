@@ -85,7 +85,8 @@ def write_nifti(sitk_img, path):
 
 
 def get_attributes(sitk_image):
-    """Get physical space attributes (meta-data) of the image."""
+    """Get physical space attributes (meta-data) of the image.
+    获取图像的物理空间属性（元数据）。"""
     attributes = {}
     attributes['orig_pixelid'] = sitk_image.GetPixelIDValue()
     attributes['orig_origin'] = sitk_image.GetOrigin()
